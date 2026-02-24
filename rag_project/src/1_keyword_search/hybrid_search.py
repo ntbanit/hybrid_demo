@@ -8,6 +8,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from rank_bm25 import BM25Okapi
 import re
+import sys 
+import os
+sys.stdout.reconfigure(encoding='utf-8')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from utils import get_doc_info
 
 def hybrid_search(query, docs, tfidf_weight=0.3, bm25_weight=0.7):

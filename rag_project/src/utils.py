@@ -11,8 +11,7 @@ def read_techcorp_docs():
     
     # Try different possible paths
     possible_paths = [
-        "../techcorp_docs/**/*.md",                  # Local development
-        "./techcorp_docs/**/*.md"                # Current directory
+        "./../../techcorp_docs/**/*.md"                # Current directory
     ]
     
     files = []

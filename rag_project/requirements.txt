@@ -8,8 +8,8 @@ matplotlib>=3.9.0
 
 sentence-transformers==2.2.2
 huggingface_hub<0.20
-openai
-chromadb
+# openai
+# chromadb
 
 # VSCode/rootline environment
 mcp

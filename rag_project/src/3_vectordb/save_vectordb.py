@@ -9,7 +9,10 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 import json
 import os
-
+import sys 
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 print("💾 Saving Vector Database to File")
 print("=" * 50)
 

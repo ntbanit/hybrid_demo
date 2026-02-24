@@ -5,7 +5,13 @@ Simple TF-IDF Search Demo
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import sys 
+import os
+sys.stdout.reconfigure(encoding='utf-8')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from utils import get_doc_info
+
 
 print("🔍 TF-IDF Search Demo")
 print("=" * 50)

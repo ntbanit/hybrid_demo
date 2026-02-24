@@ -6,6 +6,8 @@ Simple setup for storing and searching embeddings
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 print("🗄️ Initializing ChromaDB Vector Database")
 print("=" * 50)

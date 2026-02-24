@@ -6,8 +6,11 @@ Simple document ingestion using ChromaDB
 
 import chromadb
 from sentence_transformers import SentenceTransformer
-from ../utils import read_techcorp_docs
-
+import sys 
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
+from utils import read_techcorp_docs
 print("📚 Storing TechCorp Documents in Vector Database")
 print("=" * 50)
 

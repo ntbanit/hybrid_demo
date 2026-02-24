@@ -11,25 +11,27 @@ pip install -r requirements.txt
 python -c "import sklearn, pandas, numpy; print('All packages available')"
 ```
 
-1. Types of Keyword Search
+## 1. Types of Keyword Search
 ```bash
 python tfidf_search.py
-python bm25_search.py
+python bm25_search.py 
 python compare_methods.py
 ## Hybrid of Keyword search ?
 python hybrid_search.py
 ```
 
-2. Embedding
+## 2. Embedding
 ```bash
 python keyword_limitation_demo.py
 pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org sentence-transformers
 pip install openai
 python -c "import sentence_transformers, openai; print('Embedding packages available')"
 python semantic_search_demo.py
+python semactic_search_limitation.py
+
 ```
 
-3. Vectore Database
+## 3. Vectore Database
 ```bash
 pip install chromadb
 python -c "import chromadb; print('ChromaDB available')"
@@ -43,5 +45,20 @@ python vector_search_demo.py
 python save_vectordb.py
 python check_persistence.py
 
+# ?
+python vectordb_concepts_demo.py
+```
 
+## 4. Document Chunking 
+```bash
+PYTHONUTF8=1 python verify_environment.py
+
+python chunking_problem_demo.py
+python basic_chunking.py
+python overlap_chunking.py
+python sentence_chunking.py
+python chunked_search.py
+
+source ~/.bash_profile
+uv run python agentic_chunking_demo.py
 ```

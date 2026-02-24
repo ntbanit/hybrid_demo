@@ -6,7 +6,10 @@ Demonstrate semantic search using ChromaDB
 
 import chromadb
 from sentence_transformers import SentenceTransformer
-
+import sys 
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 print("🔍 Vector Search Demo")
 print("=" * 40)
 

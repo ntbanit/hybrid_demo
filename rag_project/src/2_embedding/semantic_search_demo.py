@@ -6,6 +6,10 @@ Uses sentence-transformers for semantic similarity
 
 from sentence_transformers import SentenceTransformer
 import numpy as np
+import sys 
+import os
+sys.stdout.reconfigure(encoding='utf-8')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils import read_techcorp_docs
 
 print("🧠 Semantic Search Demo (Local Embeddings)")

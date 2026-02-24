@@ -5,6 +5,11 @@ Simple BM25 Search Demo
 
 from rank_bm25 import BM25Okapi
 import re
+
+import sys 
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.stdout.reconfigure(encoding='utf-8')
 from utils import get_doc_info
 
 print("🔍 BM25 Search Demo")
