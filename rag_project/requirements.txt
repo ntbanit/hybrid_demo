@@ -1,0 +1,17 @@
+# RAG Search Methods Lab Requirements
+# Core search libraries - Updated for Python 3.13 compatibility
+scikit-learn>=1.5.0
+rank-bm25==0.2.2
+pandas>=2.2.0
+numpy>=2.0.0
+matplotlib>=3.9.0
+
+sentence-transformers==2.2.2
+huggingface_hub<0.20
+openai
+chromadb
+
+# VSCode/rootline environment
+mcp
+uv
+

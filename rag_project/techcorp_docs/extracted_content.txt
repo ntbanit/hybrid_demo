@@ -1,0 +1,3 @@
+./employee_handbook/benefits_overview.md:### Holidays
+./employee_handbook/benefits_overview.md:- **Company Holidays**: 12 fixed holidays
+./employee_handbook/benefits_overview.md:- **Floating Holidays**: 3 personal choice days
