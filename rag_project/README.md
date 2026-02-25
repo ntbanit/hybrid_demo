@@ -1,4 +1,4 @@
-# Script to setup running on Window 
+# Script to setup running on Window (RAG Study)
 ## Updated for Python 3.13 compatibility (run on Git Bash)
 ```bash
 cd rag_project/
@@ -36,7 +36,7 @@ python semactic_search_limitation.py
 pip install chromadb
 python -c "import chromadb; print('ChromaDB available')"
 
-python init_vectordb.py ##still stuck in here
+python init_vectordb.py 
 
 python store_documents.py
 
@@ -49,7 +49,7 @@ python check_persistence.py
 python vectordb_concepts_demo.py
 ```
 
-## 4. Document Chunking 
+## 4. Document Chunking
 ```bash
 PYTHONUTF8=1 python verify_environment.py
 
@@ -60,5 +60,17 @@ python sentence_chunking.py
 python chunked_search.py
 
 source ~/.bash_profile
-uv run python agentic_chunking_demo.py
+python agentic_chunking_demo.py
+```
+
+## 5. Complete RAG Demo
+```bash
+python complete_rag_demo.py
+```
+
+
+# Script to run Hybrid Demo (continue after above steps)
+```bash
+pip install langchain-google-genai langchain-community langchain-chroma chromadb rank_bm25 sentence-transformers
+python demo_1.py
 ```

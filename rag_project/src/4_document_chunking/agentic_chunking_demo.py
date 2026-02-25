@@ -18,9 +18,9 @@ print("🤖 Agentic Chunking Demo")
 print("=" * 50)
 
 # Configuration - using environment variables for API access
-API_KEY = os.environ.get("OPENAI_API_KEY")
-API_BASE = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
-MODEL_NAME = "openai/gpt-4.1-mini"
+API_KEY = os.environ.get("GEMINI_API_KEY")
+API_BASE = os.environ.get("GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta/openai/")
+MODEL_NAME = "gemini-2.5-flash-lite"
 
 if not API_KEY:
     print("❌ Error: OPENAI_API_KEY not found.")
