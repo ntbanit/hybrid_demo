@@ -87,3 +87,8 @@ Content seminar
 My plan is using Gemini + Claude to create a Content.MD file (for pptx) and Script.MD (for script), and using Claude to gen the demo code (Gemini + Claude both good at research but Claude have better result with coding than Gemini in my opinion), do you think these plane is OK ? 
 Also guide me next steps to use above tools to finish the presentation in fastest way, I only have 2 days left (16 working hours) to finish it 
 ```
+
+
+Data Service Business Part
+D&A Development Team
+LG CNS Vietnam Build Center
