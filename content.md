@@ -488,3 +488,27 @@ Chunk size matters for both  Boost BM25 for exact-match tasks
 512-1024 tokens typical      Boost vector for conceptual queries
 ```
 
+
+
+draw for me an as-is (vectore search alone) vs to-be (hybrid search) 
+Phase 1: Index : as-is : 
+- Document chunking
+- Vector database storage
+
+Phase 2: Retrieval:as-is : 
+- Query processing
+- Vector search
+- Context augmentation
+- Response generation
+
+Phase 1: Index : to-be : 
+- Document chunking
+- Vector database storage
+- Keyword/Metadata database storage
+
+
+Phase 2: Retrieval: to-be : 
+- Query processing
+- hybrid search
+- Context augmentation
+- Response generation

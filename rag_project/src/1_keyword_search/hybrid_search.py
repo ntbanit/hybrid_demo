@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from rank_bm25 import BM25Okapi
 import re
-import sys 
+import sys
 import os
 sys.stdout.reconfigure(encoding='utf-8')
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
