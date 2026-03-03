@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hybrid Search Challenges in RAG Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent-index: #f97316;
+    --accent-retrieval: #06b6d4;
+    --accent-shared: #a855f7;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --green: #22c55e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background-image: 
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(249,115,22,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(6,182,212,0.06) 0%, transparent 60%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #f97316, #fb923c, #e2e8f0, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  /* Pipeline flow bar */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .pipe-phase {
+    flex: 1;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pipe-phase.index { background: rgba(249,115,22,0.08); border-right: 1px solid var(--border); }
+  .pipe-phase.retrieval { background: rgba(6,182,212,0.08); }
+
+  .pipe-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .pipe-phase.index .pipe-icon { background: rgba(249,115,22,0.15); }
+  .pipe-phase.retrieval .pipe-icon { background: rgba(6,182,212,0.15); }
+
+  .pipe-info .title {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .pipe-phase.index .pipe-info .title { color: var(--accent-index); }
+  .pipe-phase.retrieval .pipe-info .title { color: var(--accent-retrieval); }
+
+  .pipe-info .sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .arrow-mid {
+    padding: 0 12px;
+    font-size: 20px;
+    color: var(--text-muted);
+  }
+
+  /* Main layout: 2 columns + shared */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .phase-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .col-header.index { background: rgba(249,115,22,0.12); color: var(--accent-index); border: 1px solid rgba(249,115,22,0.25); }
+  .col-header.retrieval { background: rgba(6,182,212,0.12); color: var(--accent-retrieval); border: 1px solid rgba(6,182,212,0.25); }
+
+  .challenge-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .challenge-card:hover {
+    transform: translateY(-2px);
+    border-color: #2a3a55;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .challenge-card:nth-child(1) { animation-delay: 0.05s; }
+  .challenge-card:nth-child(2) { animation-delay: 0.10s; }
+  .challenge-card:nth-child(3) { animation-delay: 0.15s; }
+  .challenge-card:nth-child(4) { animation-delay: 0.20s; }
+  .challenge-card:nth-child(5) { animation-delay: 0.25s; }
+
+  .challenge-card .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .tag.high { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .tag.med  { background: rgba(234,179,8,0.15);  color: #fbbf24; border: 1px solid rgba(234,179,8,0.25); }
+  .tag.low  { background: rgba(34,197,94,0.15);  color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+
+  .challenge-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .index-col .challenge-card h3 { color: #fed7aa; }
+  .retrieval-col .challenge-card h3 { color: #a5f3fc; }
+
+  .challenge-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .challenge-card .bullet-list {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .challenge-card .bullet-list span {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.4;
+  }
+
+  .challenge-card .bullet-list span::before {
+    content: '→';
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .index-col .challenge-card .bullet-list span::before { color: var(--accent-index); }
+  .retrieval-col .challenge-card .bullet-list span::before { color: var(--accent-retrieval); }
+
+  /* Left border accent */
+  .index-col .challenge-card { border-left: 3px solid rgba(249,115,22,0.4); }
+  .retrieval-col .challenge-card { border-left: 3px solid rgba(6,182,212,0.4); }
+
+  /* Shared challenges */
+  .shared-section {
+    background: var(--surface);
+    border: 1px solid rgba(168,85,247,0.25);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .shared-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .shared-header h2 {
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-shared);
+  }
+
+  .shared-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .shared-pill {
+    background: rgba(168,85,247,0.08);
+    border: 1px solid rgba(168,85,247,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .shared-pill h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #d8b4fe;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .shared-pill p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* Connector between columns */
+  .connector-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 8px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .connector-row::before,
+  .connector-row::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Summary bar */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .sum-item {
+    background: var(--surface);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .sum-item .num {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+
+  .sum-item:nth-child(1) .num { color: var(--accent-index); }
+  .sum-item:nth-child(2) .num { color: var(--accent-retrieval); }
+  .sum-item:nth-child(3) .num { color: var(--accent-shared); }
+
+  .sum-item .label2 {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    .summary-bar { grid-template-columns: 1fr; }
+    .arrow-mid { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="label">RAG Pipeline · Hybrid Search</div>
+    <h1>Challenges Across Both Phases</h1>
+    <p>Indexing (offline) → Retrieval (realtime) — where things get hard</p>
+  </header>
+
+  <!-- Pipeline bar -->
+  <div class="pipeline">
+    <div class="pipe-phase index">
+      <div class="pipe-icon">🗂️</div>
+      <div class="pipe-info">
+        <div class="title">Phase 1 · Indexing</div>
+        <div class="sub">Scheduled / Batch · e.g. Monthly</div>
+      </div>
+    </div>
+    <div class="arrow-mid">⟶</div>
+    <div class="pipe-phase retrieval">
+      <div class="pipe-icon">⚡</div>
+      <div class="pipe-info">
+        <div class="title">Phase 2 · Retrieval</div>
+        <div class="sub">Realtime · On User Query</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column challenges -->
+  <div class="grid">
+
+    <!-- Indexing challenges -->
+    <div class="phase-col index-col">
+      <div class="col-header index">🗂️ &nbsp;Indexing Phase Challenges</div>
+
+      <div class="challenge-card">
+        <span class="tag high">🔴 High</span>
+        <h3>Dual Index Synchronization</h3>
+        <p>Keeping the dense vector index and sparse BM25 index in sync is hard. A doc added to one but not the other causes inconsistent results.</p>
+        <div class="bullet-list">
+          <span>Atomic writes across 2 separate stores are rarely guaranteed</span>
+          <span>Partial failure → ghost documents or missing entries</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag high">🔴 High</span>
+        <h3>Chunking Strategy Affects Both Indexes Differently</h3>
+        <p>Chunk size optimized for semantic embeddings may be too large for precise BM25 keyword matching — one strategy can't serve both equally.</p>
+        <div class="bullet-list">
+          <span>Small chunks: better BM25, but weaker context for embeddings</span>
+          <span>Large chunks: richer semantics, weaker keyword precision</span>
+          <span>May need multi-granularity chunking (expensive)</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag med">🟡 Medium</span>
+        <h3>BM25 Vocabulary Drift Over Time</h3>
+        <p>As new documents are indexed monthly, the term-frequency statistics powering BM25 change — old documents get re-scored differently without re-indexing.</p>
+        <div class="bullet-list">
+          <span>Full BM25 re-index needed for accurate IDF recalculation</span>
+          <span>Incremental updates cause score skew between old/new docs</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag med">🟡 Medium</span>
+        <h3>Embedding Model Version Lock-in</h3>
+        <p>Upgrading your embedding model requires re-embedding every document from scratch — mixing old/new vectors in one index breaks similarity calculations.</p>
+        <div class="bullet-list">
+          <span>Full re-index cost can be very high at scale</span>
+          <span>Must version-control which model generated which vectors</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag low">🟢 Low–Med</span>
+        <h3>Storage & Infra Cost × 2</h3>
+        <p>Hybrid search requires maintaining two indexes simultaneously — storage doubles, and you pay for two query engines if not using a native hybrid DB.</p>
+        <div class="bullet-list">
+          <span>Separate vector DB + Elasticsearch = double operational overhead</span>
+          <span>Native hybrid DBs (Weaviate, Qdrant) reduce but don't eliminate this</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Retrieval challenges -->
+    <div class="phase-col retrieval-col">
+      <div class="col-header retrieval">⚡ &nbsp;Retrieval Phase Challenges</div>
+
+      <div class="challenge-card">
+        <span class="tag high">🔴 High</span>
+        <h3>Score Normalization Before Fusion</h3>
+        <p>Dense scores (cosine similarity: −1 to 1) and sparse scores (BM25: 0 to ∞) live in completely different ranges — you can't combine them without normalization.</p>
+        <div class="bullet-list">
+          <span>Min-max normalization is sensitive to outliers</span>
+          <span>RRF avoids this but discards absolute score information</span>
+          <span>Wrong normalization silently biases one side</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag high">🔴 High</span>
+        <h3>Fusion Weight Tuning (α)</h3>
+        <p>Hybrid search blends results as: <code style="color:#67e8f9;font-size:12px">score = α·dense + (1−α)·sparse</code>. Choosing α is non-trivial and query-type dependent.</p>
+        <div class="bullet-list">
+          <span>Factual/keyword queries → want higher sparse weight</span>
+          <span>Conceptual/semantic queries → want higher dense weight</span>
+          <span>Static α is always a compromise; dynamic α needs ML overhead</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag high">🔴 High</span>
+        <h3>Latency: Two Searches in Parallel</h3>
+        <p>Running dense + sparse search simultaneously doubles query complexity. If done sequentially, latency doubles — unacceptable for realtime UX.</p>
+        <div class="bullet-list">
+          <span>Requires parallel execution and async coordination</span>
+          <span>Network round-trips to separate stores compound the issue</span>
+          <span>P99 latency spikes are harder to manage than P50</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag med">🟡 Medium</span>
+        <h3>Query Preprocessing Mismatch</h3>
+        <p>The same user query must be processed differently for each retrieval path — embedded for dense, tokenized/stemmed for sparse.</p>
+        <div class="bullet-list">
+          <span>Spelling errors hurt BM25 more than dense embeddings</span>
+          <span>Query expansion helps sparse but can hurt dense precision</span>
+        </div>
+      </div>
+
+      <div class="challenge-card">
+        <span class="tag med">🟡 Medium</span>
+        <h3>Re-ranking After Fusion Adds Latency</h3>
+        <p>Fused top-K results often need a cross-encoder re-ranker for final precision — this adds another model inference step in the hot path.</p>
+        <div class="bullet-list">
+          <span>Cross-encoder is slower than bi-encoder retrieval</span>
+          <span>Skipping re-ranking sacrifices quality for speed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector-row">⬇ challenges spanning both phases ⬇</div>
+
+  <!-- Shared challenges -->
+  <div class="shared-section">
+    <div class="shared-header">
+      <span>🔗</span>
+      <h2>Shared / Cross-Phase Challenges</h2>
+    </div>
+    <div class="shared-pills">
+      <div class="shared-pill">
+        <h4>🧪 Evaluation Complexity</h4>
+        <p>Hard to measure which blend of dense+sparse actually improves recall/precision. Requires labeled query-document datasets per domain.</p>
+      </div>
+      <div class="shared-pill">
+        <h4>🌐 Multilingual & Domain Gaps</h4>
+        <p>BM25 is language-aware (tokenization/stemming per language); embedding models vary in multilingual quality. Both need per-language tuning.</p>
+      </div>
+      <div class="shared-pill">
+        <h4>🔄 Incremental Update Consistency</h4>
+        <p>When a doc is updated/deleted, both indexes must reflect the change. Stale data in either index causes incorrect retrieval silently.</p>
+      </div>
+      <div class="shared-pill">
+        <h4>🏗️ Operational Complexity</h4>
+        <p>Two systems to monitor, scale, back up, and debug. Failure in one degrades results without obvious error — hybrid silent failures are insidious.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-bar">
+    <div class="sum-item">
+      <div class="num">5</div>
+      <div class="label2">Indexing Challenges</div>
+    </div>
+    <div class="sum-item">
+      <div class="num">5</div>
+      <div class="label2">Retrieval Challenges</div>
+    </div>
+    <div class="sum-item">
+      <div class="num">4</div>
+      <div class="label2">Shared Challenges</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
