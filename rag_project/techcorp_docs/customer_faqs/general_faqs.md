@@ -1,6 +1,6 @@
 # TechCorp Customer FAQ
 
-**Last Updated**: June 1, 2024  
+**Last Updated**: June 1, 2024
 **Version**: 2.3
 
 ## General Questions

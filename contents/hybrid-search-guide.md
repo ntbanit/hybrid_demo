@@ -14,65 +14,6 @@ Imagine you're trying to find a song that *feels* like a rainy Sunday afternoon.
 
 It converts text (or images, audio, etc.) into a list of numbers called a **vector** (also called an *embedding*). Similar meanings produce similar number patterns. The search engine then finds items whose number patterns are closest to your query's number pattern.
 
-```svg
-<svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="13">
-  <!-- Background -->
-  <rect width="700" height="280" fill="#0f172a" rx="12"/>
-
-  <!-- Title -->
-  <text x="350" y="30" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="bold">Vector Search: Words → Numbers → Similarity</text>
-
-  <!-- Query box -->
-  <rect x="20" y="55" width="160" height="45" fill="#1e40af" rx="8"/>
-  <text x="100" y="73" text-anchor="middle" fill="#bfdbfe" font-size="12" font-weight="bold">Query</text>
-  <text x="100" y="91" text-anchor="middle" fill="#eff6ff" font-size="11">"dog running fast"</text>
-
-  <!-- Arrow -->
-  <line x1="180" y1="77" x2="230" y2="77" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
-  <defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#38bdf8"/>
-    </marker>
-    <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa"/>
-    </marker>
-  </defs>
-
-  <!-- Embedding box -->
-  <rect x="230" y="50" width="180" height="55" fill="#1e293b" rx="8" stroke="#38bdf8" stroke-width="1"/>
-  <text x="320" y="70" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="bold">Embedding Model</text>
-  <text x="320" y="88" text-anchor="middle" fill="#64748b" font-size="10">[0.82, -0.14, 0.67,</text>
-  <text x="320" y="100" text-anchor="middle" fill="#64748b" font-size="10"> 0.33, 0.91, ...]</text>
-
-  <!-- Arrow -->
-  <line x1="410" y1="77" x2="460" y2="77" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
-
-  <!-- Vector DB -->
-  <rect x="460" y="45" width="220" height="165" fill="#1e293b" rx="8" stroke="#6366f1" stroke-width="1"/>
-  <text x="570" y="68" text-anchor="middle" fill="#a5b4fc" font-size="12" font-weight="bold">Vector Database</text>
-
-  <!-- Doc vectors -->
-  <rect x="475" y="78" width="190" height="30" fill="#312e81" rx="5"/>
-  <text x="485" y="91" fill="#c7d2fe" font-size="10">🐕 "puppy sprinting in park"</text>
-  <text x="485" y="103" fill="#4ade80" font-size="10">similarity: 0.94 ✓ TOP MATCH</text>
-
-  <rect x="475" y="115" width="190" height="30" fill="#1e293b" rx="5" stroke="#374151"/>
-  <text x="485" y="128" fill="#94a3b8" font-size="10">🐈 "cat sleeping on sofa"</text>
-  <text x="485" y="140" fill="#f87171" font-size="10">similarity: 0.21</text>
-
-  <rect x="475" y="152" width="190" height="30" fill="#312e81" rx="5"/>
-  <text x="485" y="165" fill="#c7d2fe" font-size="10">🏃 "athlete racing at top speed"</text>
-  <text x="485" y="177" fill="#fbbf24" font-size="10">similarity: 0.87 ✓ MATCH</text>
-
-  <rect x="475" y="189" width="190" height="13" fill="#1e293b" rx="5"/>
-  <text x="570" y="199" text-anchor="middle" fill="#475569" font-size="9">... more documents ...</text>
-
-  <!-- Bottom note -->
-  <text x="350" y="248" text-anchor="middle" fill="#64748b" font-size="11">No exact word "dog" needed — meaning is matched!</text>
-  <text x="350" y="265" text-anchor="middle" fill="#475569" font-size="10">"puppy sprinting" ≈ "dog running fast" in meaning</text>
-</svg>
-```
-
 ### #examples# of Vector Search
 
 | You type... | Vector Search also finds... | Why? |
@@ -98,57 +39,6 @@ Imagine two arrows drawn from the center of a circle. Cosine similarity measures
 **Score = 1.0** → Perfect match (same direction)
 **Score = 0.0** → No relation (perpendicular)
 **Score = -1.0** → Opposite meaning
-
-```svg
-<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
-  <rect width="400" height="260" fill="#0f172a" rx="10"/>
-  <text x="200" y="25" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="bold">Cosine Similarity</text>
-
-  <!-- Axes -->
-  <line x1="50" y1="200" x2="350" y2="200" stroke="#334155" stroke-width="1.5"/>
-  <line x1="200" y1="30" x2="200" y2="215" stroke="#334155" stroke-width="1.5"/>
-  <text x="355" y="204" fill="#475569" font-size="11">x</text>
-  <text x="204" y="28" fill="#475569" font-size="11">y</text>
-  <text x="196" y="215" fill="#475569" font-size="10">0</text>
-
-  <!-- Query vector -->
-  <line x1="200" y1="200" x2="300" y2="80" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#blarr)"/>
-  <text x="305" y="75" fill="#38bdf8" font-size="11">Query</text>
-  <defs>
-    <marker id="blarr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#38bdf8"/>
-    </marker>
-    <marker id="grarr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#4ade80"/>
-    </marker>
-    <marker id="redarr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#f87171"/>
-    </marker>
-    <marker id="yelarr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#fbbf24"/>
-    </marker>
-  </defs>
-
-  <!-- Doc A - very similar -->
-  <line x1="200" y1="200" x2="285" y2="70" stroke="#4ade80" stroke-width="2" marker-end="url(#grarr)"/>
-  <text x="288" y="67" fill="#4ade80" font-size="10">Doc A (0.97)</text>
-
-  <!-- Doc B - somewhat similar -->
-  <line x1="200" y1="200" x2="330" y2="130" stroke="#fbbf24" stroke-width="2" marker-end="url(#yelarr)"/>
-  <text x="333" y="128" fill="#fbbf24" font-size="10">Doc B (0.71)</text>
-
-  <!-- Doc C - not similar -->
-  <line x1="200" y1="200" x2="90" y2="110" stroke="#f87171" stroke-width="2" marker-end="url(#redarr)"/>
-  <text x="40" y="107" fill="#f87171" font-size="10">Doc C (0.12)</text>
-
-  <!-- Angle arc -->
-  <path d="M 235 167 A 35 35 0 0 0 225 162" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
-  <text x="245" y="162" fill="#a78bfa" font-size="10">small angle</text>
-  <text x="245" y="173" fill="#a78bfa" font-size="10">= similar!</text>
-
-  <text x="200" y="248" text-anchor="middle" fill="#475569" font-size="10">Small angle between vectors = high similarity score</text>
-</svg>
-```
 
 **Examples:**
 - `"dog running"` vs `"puppy sprinting"` → cosine ≈ 0.94
@@ -178,55 +68,6 @@ A vector database can have *millions* of documents. Checking each one is too slo
 
 Keyword search is the **old-school librarian** approach. It looks for the *exact words* you typed — nothing more, nothing less. It's how Google worked in the early 2000s, and it's still what powers many search bars today.
 
-```svg
-<svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="12">
-  <rect width="680" height="230" fill="#0f172a" rx="12"/>
-  <text x="340" y="28" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="bold">Keyword Search: Find the Exact Words</text>
-
-  <!-- Query -->
-  <rect x="15" y="45" width="155" height="40" fill="#854d0e" rx="7"/>
-  <text x="92" y="62" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="bold">Query</text>
-  <text x="92" y="78" text-anchor="middle" fill="#fde68a" font-size="11">"Python tutorial"</text>
-
-  <defs>
-    <marker id="oa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L7,3 z" fill="#f59e0b"/>
-    </marker>
-  </defs>
-  <line x1="170" y1="65" x2="210" y2="65" stroke="#f59e0b" stroke-width="2" marker-end="url(#oa)"/>
-
-  <!-- Index -->
-  <rect x="210" y="38" width="200" height="135" fill="#1e293b" rx="8" stroke="#f59e0b" stroke-width="1"/>
-  <text x="310" y="58" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold">Inverted Index</text>
-
-  <text x="220" y="76" fill="#64748b" font-size="10">python → [doc1, doc3, doc7]</text>
-  <text x="220" y="92" fill="#64748b" font-size="10">tutorial → [doc1, doc2, doc9]</text>
-  <text x="220" y="108" fill="#64748b" font-size="10">java → [doc4, doc5]</text>
-  <text x="220" y="124" fill="#64748b" font-size="10">guide → [doc2, doc6, doc8]</text>
-  <text x="220" y="140" fill="#fbbf24" font-size="10" font-weight="bold">Match: doc1 has BOTH words ✓</text>
-  <text x="220" y="156" fill="#475569" font-size="10">↳ doc1 ranked #1</text>
-
-  <line x1="410" y1="65" x2="450" y2="65" stroke="#f59e0b" stroke-width="2" marker-end="url(#oa)"/>
-
-  <!-- Results -->
-  <rect x="450" y="38" width="215" height="135" fill="#1e293b" rx="8" stroke="#22c55e" stroke-width="1"/>
-  <text x="557" y="58" text-anchor="middle" fill="#86efac" font-size="11" font-weight="bold">Results</text>
-
-  <rect x="460" y="65" width="195" height="25" fill="#14532d" rx="4"/>
-  <text x="470" y="79" fill="#4ade80" font-size="10">✓ doc1: "Python Tutorial for Beginners"</text>
-  <text x="470" y="90" fill="#94a3b8" font-size="9">BM25 score: 14.2</text>
-
-  <rect x="460" y="100" width="195" height="25" fill="#1e293b" rx="4" stroke="#374151"/>
-  <text x="470" y="114" fill="#94a3b8" font-size="10">✗ "Learn Python the Hard Way"</text>
-  <text x="470" y="125" fill="#64748b" font-size="9">Missing "tutorial" → not returned</text>
-
-  <rect x="460" y="135" width="195" height="25" fill="#1e293b" rx="4" stroke="#374151"/>
-  <text x="470" y="149" fill="#94a3b8" font-size="10">✗ "Beginner's guide to coding"</text>
-  <text x="470" y="160" fill="#64748b" font-size="9">Missing "Python" → not returned</text>
-
-  <text x="340" y="210" text-anchor="middle" fill="#475569" font-size="10">Exact word match — fast, precise, but rigid</text>
-</svg>
-```
 
 ### #examples# of Keyword Search
 
@@ -283,49 +124,6 @@ BM25 is the algorithm behind **Elasticsearch** and **Lucene**. It improves on TF
 
 Keyword search is like a **very literal-minded assistant** who only does *exactly* what you say.
 
-```svg
-<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="12">
-  <rect width="660" height="300" fill="#0f172a" rx="12"/>
-  <text x="330" y="28" text-anchor="middle" fill="#f87171" font-size="14" font-weight="bold">😤 Keyword Search Failures</text>
-
-  <!-- Case 1 -->
-  <rect x="15" y="45" width="300" height="110" fill="#1e293b" rx="8" stroke="#ef4444" stroke-width="1"/>
-  <text x="165" y="63" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="bold">❌ Synonym Problem</text>
-  <text x="25" y="82" fill="#94a3b8" font-size="10">User types: "sofa"</text>
-  <text x="25" y="97" fill="#94a3b8" font-size="10">Returned: 0 results</text>
-  <text x="25" y="112" fill="#64748b" font-size="10">In database: "couch", "settee",</text>
-  <text x="25" y="126" fill="#64748b" font-size="10">"loveseat" — all mean the same!</text>
-  <text x="25" y="141" fill="#f87171" font-size="10">User thinks: "Is this site broken?"</text>
-
-  <!-- Case 2 -->
-  <rect x="345" y="45" width="300" height="110" fill="#1e293b" rx="8" stroke="#ef4444" stroke-width="1"/>
-  <text x="495" y="63" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="bold">❌ Plural/Typo Problem</text>
-  <text x="355" y="82" fill="#94a3b8" font-size="10">User types: "runnings shoes" (typo)</text>
-  <text x="355" y="97" fill="#94a3b8" font-size="10">Returned: 0 results</text>
-  <text x="355" y="112" fill="#64748b" font-size="10">In database: "running shoes",</text>
-  <text x="355" y="126" fill="#64748b" font-size="10">"athletic footwear"</text>
-  <text x="355" y="141" fill="#f87171" font-size="10">User thinks: "This store has nothing."</text>
-
-  <!-- Case 3 -->
-  <rect x="15" y="170" width="300" height="110" fill="#1e293b" rx="8" stroke="#ef4444" stroke-width="1"/>
-  <text x="165" y="188" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="bold">❌ Intent Problem</text>
-  <text x="25" y="207" fill="#94a3b8" font-size="10">User types: "my laptop is so slow"</text>
-  <text x="25" y="222" fill="#94a3b8" font-size="10">Keyword returns: literal matches</text>
-  <text x="25" y="237" fill="#64748b" font-size="10">for "slow laptop" — maybe nothing</text>
-  <text x="25" y="252" fill="#64748b" font-size="10">useful! User wants: "how to speed</text>
-  <text x="25" y="267" fill="#64748b" font-size="10">up laptop" guides</text>
-
-  <!-- Case 4 -->
-  <rect x="345" y="170" width="300" height="110" fill="#1e293b" rx="8" stroke="#ef4444" stroke-width="1"/>
-  <text x="495" y="188" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="bold">❌ Language Barrier</text>
-  <text x="355" y="207" fill="#94a3b8" font-size="10">User types: "voiture" (French: car)</text>
-  <text x="355" y="222" fill="#94a3b8" font-size="10">English DB returns: 0 results</text>
-  <text x="355" y="237" fill="#64748b" font-size="10">Hundreds of "car" articles exist</text>
-  <text x="355" y="252" fill="#64748b" font-size="10">but keyword can't bridge</text>
-  <text x="355" y="267" fill="#f87171" font-size="10">the language gap</text>
-</svg>
-```
-
 ---
 
 ### 🤖 #explain# + #examples# — Vector Search Alone Has Blind Spots
@@ -369,40 +167,6 @@ Problem: SKU-4892-B is an exact identifier — similarity is useless here!
 
 ### ✅ #explain# + #examples# — Hybrid Search Uses the Strengths of Both
 
-```svg
-<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="12">
-  <rect width="700" height="320" fill="#0f172a" rx="12"/>
-  <text x="350" y="28" text-anchor="middle" fill="#a3e635" font-size="14" font-weight="bold">✅ Hybrid Search = Best of Both Worlds</text>
-
-  <!-- Keyword circle -->
-  <ellipse cx="210" cy="170" rx="170" ry="110" fill="#1e3a5f" opacity="0.8" stroke="#38bdf8" stroke-width="1.5"/>
-  <text x="110" y="130" fill="#7dd3fc" font-size="11" font-weight="bold">Keyword Search</text>
-  <text x="80" y="148" fill="#93c5fd" font-size="10">✓ Exact matches</text>
-  <text x="80" y="163" fill="#93c5fd" font-size="10">✓ SKU / codes / IDs</text>
-  <text x="80" y="178" fill="#93c5fd" font-size="10">✓ Dates and versions</text>
-  <text x="80" y="193" fill="#93c5fd" font-size="10">✓ Proper nouns</text>
-  <text x="80" y="208" fill="#93c5fd" font-size="10">✓ Fast and explainable</text>
-
-  <!-- Vector circle -->
-  <ellipse cx="490" cy="170" rx="170" ry="110" fill="#2d1b69" opacity="0.8" stroke="#a78bfa" stroke-width="1.5"/>
-  <text x="500" y="130" fill="#c4b5fd" font-size="11" font-weight="bold">Vector Search</text>
-  <text x="480" y="148" fill="#ddd6fe" font-size="10">✓ Synonyms</text>
-  <text x="480" y="163" fill="#ddd6fe" font-size="10">✓ Paraphrasing</text>
-  <text x="480" y="178" fill="#ddd6fe" font-size="10">✓ Intent understanding</text>
-  <text x="480" y="193" fill="#ddd6fe" font-size="10">✓ Multi-language</text>
-  <text x="480" y="208" fill="#ddd6fe" font-size="10">✓ Conceptual queries</text>
-
-  <!-- Overlap / Hybrid zone -->
-  <ellipse cx="350" cy="170" rx="60" ry="60" fill="#1a1a2e" stroke="#a3e635" stroke-width="2" opacity="0.9"/>
-  <text x="350" y="158" text-anchor="middle" fill="#a3e635" font-size="10" font-weight="bold">HYBRID</text>
-  <text x="350" y="172" text-anchor="middle" fill="#84cc16" font-size="9">Fusion &amp;</text>
-  <text x="350" y="184" text-anchor="middle" fill="#84cc16" font-size="9">Re-ranking</text>
-
-  <!-- Examples at bottom -->
-  <rect x="15" y="285" width="660" height="25" fill="#1e293b" rx="5"/>
-  <text x="350" y="302" text-anchor="middle" fill="#64748b" font-size="10">Example: "Python 3.12 async features" → keyword catches "3.12", vector catches "async concurrent programming concepts"</text>
-</svg>
-```
 
 **Real-World Hybrid Search Wins:**
 
@@ -422,33 +186,7 @@ The magic of Hybrid Search is in *how* the two systems work together. Let's walk
 ---
 
 ```mermaid
-flowchart TD
-    Q[/"👤 User Query\n'Python async tutorial 2024'"/]
 
-    Q --> KS["🔤 Keyword Index\n(Elasticsearch / Lucene / BM25)"]
-    Q --> VS["🧠 Vector Index\n(HNSW / ANN)"]
-
-    KS --> KR["📋 Keyword Results\nDoc A: BM25=14.2\nDoc C: BM25=11.8\nDoc F: BM25=9.1"]
-    VS --> VR["📋 Vector Results\nDoc A: cos=0.94\nDoc B: cos=0.89\nDoc D: cos=0.81"]
-
-    KR --> NF["⚖️ Score Normalization & Fusion\nRRF or Weighted Sum"]
-    VR --> NF
-
-    NF --> FR["🗂️ Fused Ranked List\n#1 Doc A (in both!)\n#2 Doc B\n#3 Doc C\n#4 Doc D\n#5 Doc F"]
-
-    FR --> RR["🎯 Re-ranking\n(Cross-Encoder Model)\nOptional but powerful"]
-
-    RR --> LLM["🤖 LLM / Final Response"]
-
-    style Q fill:#1e40af,stroke:#60a5fa,color:#eff6ff
-    style KS fill:#854d0e,stroke:#fbbf24,color:#fef3c7
-    style VS fill:#312e81,stroke:#818cf8,color:#e0e7ff
-    style KR fill:#422006,stroke:#d97706,color:#fef3c7
-    style VR fill:#1e1b4b,stroke:#818cf8,color:#e0e7ff
-    style NF fill:#14532d,stroke:#4ade80,color:#dcfce7
-    style FR fill:#1e293b,stroke:#64748b,color:#e2e8f0
-    style RR fill:#4a044e,stroke:#d946ef,color:#fdf4ff
-    style LLM fill:#0c4a6e,stroke:#38bdf8,color:#e0f2fe
 ```
 
 ### Step-by-Step Breakdown
@@ -486,33 +224,7 @@ A smarter AI model reads the top results again and re-orders them for maximum ac
 
 ### #diagram# — RRF vs Weighted Sum: Which Fusion to Use?
 
-```mermaid
-flowchart LR
-    subgraph RRF["🏆 Reciprocal Rank Fusion (RRF)"]
-        direction TB
-        R1["Formula:\nRRF(doc) = Σ 1/(k + rank)\nwhere k=60 (default)"]
-        R2["✅ Works when scales differ wildly\n✅ No tuning needed\n✅ Robust to outliers\n❌ Ignores actual score values"]
-    end
 
-    subgraph WS["⚖️ Weighted Sum Fusion"]
-        direction TB
-        W1["Formula:\nScore = α × norm(vector) + (1-α) × norm(keyword)\nwhere α is a tuning parameter 0-1"]
-        W2["✅ Fine-grained control\n✅ Boost keyword or vector by domain\n❌ Requires careful normalization\n❌ Needs tuning and testing"]
-    end
-
-    subgraph USE["📌 When to Use Which?"]
-        direction TB
-        U1["Use RRF when:\n• Starting out / prototyping\n• Scores from different scale systems\n• You don't have labeled training data\n• You want zero config"]
-        U2["Use Weighted Sum when:\n• You have training data to tune α\n• Domain is keyword-heavy (legal, code)\n  → α = 0.3 (weight vector less)\n• Domain is semantic (creative, Q&A)\n  → α = 0.7 (weight vector more)"]
-    end
-
-    RRF --> USE
-    WS --> USE
-
-    style RRF fill:#1e3a5f,stroke:#38bdf8,color:#e0f2fe
-    style WS fill:#2d1b69,stroke:#a78bfa,color:#ede9fe
-    style USE fill:#14532d,stroke:#4ade80,color:#dcfce7
-```
 
 **Concrete Example — RRF in action:**
 
@@ -534,56 +246,6 @@ RRF scores (k=60):
 
 ### #diagram# — AS-IS vs TO-BE RAG Architecture
 
-```mermaid
-flowchart LR
-    subgraph ASIS["❌ AS-IS: Vector-Only RAG"]
-        direction TB
-        subgraph IDX1["Phase 1: Index"]
-            A1["📄 Documents"] --> A2["✂️ Chunking"]
-            A2 --> A3["🧠 Embedding Model"]
-            A3 --> A4[("🗄️ Vector DB Only")]
-        end
-        subgraph RET1["Phase 2: Retrieve"]
-            B1["❓ User Query"] --> B2["🔢 Query Embedding"]
-            B2 --> B3["🔍 Vector Search Only"]
-            A4 --> B3
-            B3 --> B4["📝 Context"]
-            B4 --> B5["🤖 LLM Answer"]
-        end
-    end
-
-    subgraph TOBE["✅ TO-BE: Hybrid RAG"]
-        direction TB
-        subgraph IDX2["Phase 1: Index"]
-            C1["📄 Documents"] --> C2["✂️ Chunking"]
-            C2 --> C3["🧠 Embedding"]
-            C2 --> C6["🔤 BM25 Tokenizing"]
-            C3 --> C4[("🗄️ Vector DB")]
-            C6 --> C7[("📚 Keyword Index")]
-        end
-        subgraph RET2["Phase 2: Retrieve"]
-            D1["❓ User Query"] --> D2["🔢 Query Embedding"]
-            D1 --> D6["🔤 Keyword Parse"]
-            D2 --> D3["🔍 Vector Search"]
-            D6 --> D7["🔤 Keyword Search"]
-            C4 --> D3
-            C7 --> D7
-            D3 --> D8["⚖️ Hybrid Fusion\n(RRF / Weighted Sum)"]
-            D7 --> D8
-            D8 --> D9["🎯 Re-ranking"]
-            D9 --> D10["📝 Context"]
-            D10 --> D11["🤖 LLM Answer"]
-        end
-    end
-
-    style ASIS fill:#1a0a0a,stroke:#ef4444,color:#fca5a5
-    style TOBE fill:#0a1a0a,stroke:#22c55e,color:#86efac
-    style IDX1 fill:#1f1212,stroke:#dc2626
-    style RET1 fill:#1f1212,stroke:#dc2626
-    style IDX2 fill:#0f1f0f,stroke:#16a34a
-    style RET2 fill:#0f1f0f,stroke:#16a34a
-```
-
 ---
 
 ### #explain# — Which Database Supports What?
@@ -593,70 +255,6 @@ Different databases handle **dense** (vector) and **sparse** (keyword) search di
 > 🟦 **Dense** = Vector search (floating-point embeddings, like [0.1, 0.8, -0.3, ...])
 > 🟧 **Sparse** = Keyword/BM25 search (word counts, like {"python": 3, "tutorial": 1})
 
-```svg
-<svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="11">
-  <rect width="700" height="340" fill="#0f172a" rx="12"/>
-  <text x="350" y="26" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="bold">Database Comparison: Dense vs Sparse Support</text>
-
-  <!-- Header row -->
-  <rect x="10" y="38" width="680" height="28" fill="#1e293b" rx="5"/>
-  <text x="120" y="57" text-anchor="middle" fill="#64748b" font-size="11" font-weight="bold">Database</text>
-  <text x="270" y="57" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="bold">Dense (Vector)</text>
-  <text x="400" y="57" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="bold">Sparse (Keyword)</text>
-  <text x="540" y="57" text-anchor="middle" fill="#a3e635" font-size="11" font-weight="bold">Best For</text>
-
-  <!-- Row data -->
-  <!-- PostgreSQL + pgvector -->
-  <rect x="10" y="70" width="680" height="34" fill="#1e293b" rx="4" opacity="0.6"/>
-  <text x="120" y="90" text-anchor="middle" fill="#e2e8f0" font-size="11">PostgreSQL + pgvector</text>
-  <text x="270" y="90" text-anchor="middle" fill="#4ade80" font-size="14">✓</text>
-  <text x="400" y="90" text-anchor="middle" fill="#fbbf24" font-size="11">Limited (FTS)</text>
-  <text x="540" y="88" text-anchor="middle" fill="#94a3b8" font-size="9">Existing SQL apps, small scale</text>
-  <text x="540" y="99" text-anchor="middle" fill="#64748b" font-size="9">Already using Postgres</text>
-
-  <!-- Elasticsearch -->
-  <rect x="10" y="108" width="680" height="34" fill="#1e293b" rx="4" opacity="0.8"/>
-  <text x="120" y="128" text-anchor="middle" fill="#e2e8f0" font-size="11">Elasticsearch</text>
-  <text x="270" y="128" text-anchor="middle" fill="#4ade80" font-size="14">✓</text>
-  <text x="400" y="128" text-anchor="middle" fill="#4ade80" font-size="14">✓✓ (native BM25)</text>
-  <text x="540" y="126" text-anchor="middle" fill="#94a3b8" font-size="9">Log search, enterprise full-text</text>
-  <text x="540" y="137" text-anchor="middle" fill="#64748b" font-size="9">Already using ELK stack</text>
-
-  <!-- Weaviate -->
-  <rect x="10" y="146" width="680" height="34" fill="#1e293b" rx="4" opacity="0.6"/>
-  <text x="120" y="166" text-anchor="middle" fill="#e2e8f0" font-size="11">Weaviate</text>
-  <text x="270" y="166" text-anchor="middle" fill="#4ade80" font-size="14">✓✓ native</text>
-  <text x="400" y="166" text-anchor="middle" fill="#4ade80" font-size="14">✓ BM25</text>
-  <text x="540" y="164" text-anchor="middle" fill="#94a3b8" font-size="9">AI-native apps, RAG pipelines</text>
-  <text x="540" y="175" text-anchor="middle" fill="#64748b" font-size="9">Hybrid built-in, GraphQL API</text>
-
-  <!-- Pinecone -->
-  <rect x="10" y="184" width="680" height="34" fill="#1e293b" rx="4" opacity="0.8"/>
-  <text x="120" y="204" text-anchor="middle" fill="#e2e8f0" font-size="11">Pinecone</text>
-  <text x="270" y="204" text-anchor="middle" fill="#4ade80" font-size="14">✓✓ managed</text>
-  <text x="400" y="204" text-anchor="middle" fill="#4ade80" font-size="14">✓ sparse vectors</text>
-  <text x="540" y="202" text-anchor="middle" fill="#94a3b8" font-size="9">Serverless, fully managed</text>
-  <text x="540" y="213" text-anchor="middle" fill="#64748b" font-size="9">Don't want to manage infra</text>
-
-  <!-- Milvus -->
-  <rect x="10" y="222" width="680" height="34" fill="#1e293b" rx="4" opacity="0.6"/>
-  <text x="120" y="242" text-anchor="middle" fill="#e2e8f0" font-size="11">Milvus</text>
-  <text x="270" y="242" text-anchor="middle" fill="#4ade80" font-size="14">✓✓ HNSW</text>
-  <text x="400" y="242" text-anchor="middle" fill="#fbbf24" font-size="11">Partial (BM25 beta)</text>
-  <text x="540" y="240" text-anchor="middle" fill="#94a3b8" font-size="9">Billion-scale, high performance</text>
-  <text x="540" y="251" text-anchor="middle" fill="#64748b" font-size="9">Large-scale self-hosted</text>
-
-  <!-- Qdrant -->
-  <rect x="10" y="260" width="680" height="34" fill="#1e293b" rx="4" opacity="0.8"/>
-  <text x="120" y="280" text-anchor="middle" fill="#e2e8f0" font-size="11">Qdrant</text>
-  <text x="270" y="280" text-anchor="middle" fill="#4ade80" font-size="14">✓✓ HNSW</text>
-  <text x="400" y="280" text-anchor="middle" fill="#4ade80" font-size="14">✓ sparse vectors</text>
-  <text x="540" y="278" text-anchor="middle" fill="#94a3b8" font-size="9">Rust-native, fast + open source</text>
-  <text x="540" y="289" text-anchor="middle" fill="#64748b" font-size="9">Performance-critical self-hosted</text>
-
-  <text x="350" y="318" text-anchor="middle" fill="#475569" font-size="10">✓✓ = native, production-ready support &nbsp;|&nbsp; ✓ = supported but may need setup &nbsp;|&nbsp; Limited = workarounds needed</text>
-</svg>
-```
 
 **When to use which:**
 
@@ -680,36 +278,6 @@ Real life isn't always smooth. Here are the 5 hardest problems engineers face:
 
 > "When a document updates, BOTH indexes must update — or they drift out of sync."
 
-```svg
-<svg viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="11">
-  <rect width="680" height="200" fill="#0f172a" rx="10"/>
-  <text x="340" y="25" text-anchor="middle" fill="#f87171" font-size="12" font-weight="bold">⚠️ Sync Problem: Indexes Getting Out of Step</text>
-
-  <!-- Doc Update -->
-  <rect x="15" y="40" width="130" height="50" fill="#7f1d1d" rx="7" stroke="#ef4444"/>
-  <text x="80" y="60" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="bold">Document Updated</text>
-  <text x="80" y="75" text-anchor="middle" fill="#fecaca" font-size="9">"New return policy"</text>
-  <text x="80" y="88" text-anchor="middle" fill="#fecaca" font-size="9">saved to database</text>
-
-  <defs><marker id="ra" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94a3b8"/></marker></defs>
-
-  <!-- Vector Index updated -->
-  <line x1="145" y1="65" x2="185" y2="65" stroke="#4ade80" stroke-width="2" marker-end="url(#ra)"/>
-  <rect x="185" y="40" width="160" height="50" fill="#14532d" rx="7" stroke="#22c55e"/>
-  <text x="265" y="60" text-anchor="middle" fill="#86efac" font-size="10" font-weight="bold">✅ Vector DB Updated</text>
-  <text x="265" y="75" text-anchor="middle" fill="#4ade80" font-size="9">New embedding stored</text>
-  <text x="265" y="88" text-anchor="middle" fill="#4ade80" font-size="9">immediately</text>
-
-  <!-- Keyword Index NOT updated -->
-  <line x1="145" y1="65" x2="375" y2="120" stroke="#ef4444" stroke-width="2" stroke-dasharray="4" marker-end="url(#ra)"/>
-  <rect x="375" y="100" width="180" height="50" fill="#7f1d1d" rx="7" stroke="#ef4444"/>
-  <text x="465" y="118" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="bold">❌ Keyword Index Stale</text>
-  <text x="465" y="133" text-anchor="middle" fill="#fecaca" font-size="9">Still has old policy text</text>
-  <text x="465" y="146" text-anchor="middle" fill="#fecaca" font-size="9">BM25 returns wrong doc!</text>
-
-  <text x="340" y="185" text-anchor="middle" fill="#475569" font-size="10">Fix: Use a message queue (Kafka/Redis) to pipeline writes to BOTH indexes atomically</text>
-</svg>
-```
 
 **Example:** A user asks "What's the return policy?" The vector search finds the updated policy, but keyword search finds the 6-month-old version. The hybrid system merges them — and the old doc contaminates the answer.
 
@@ -776,32 +344,6 @@ The parameter α (alpha) controls the balance:
 
 > "Two searches take longer than one — even run in parallel, there's overhead."
 
-```mermaid
-gantt
-    title Query Latency Comparison (milliseconds)
-    dateFormat X
-    axisFormat %s ms
-
-    section Keyword Only
-    BM25 Search     : 0, 20
-
-    section Vector Only
-    Embedding Query : 0, 15
-    ANN Search      : 15, 35
-
-    section Hybrid (Parallel)
-    BM25 Search     : 0, 20
-    Embedding Query : 0, 15
-    ANN Search      : 15, 35
-    Fusion + RRF    : 35, 42
-    Re-ranking      : 42, 90
-
-    section Hybrid (No Rerank)
-    BM25 Search     : 0, 20
-    Embedding Query : 0, 15
-    ANN Search      : 15, 35
-    Fusion only     : 35, 42
-```
 
 **Latency breakdown for a typical hybrid query:**
 
@@ -821,47 +363,9 @@ gantt
 - Use a lighter cross-encoder model for re-ranking
 - Set a timeout: if re-ranking exceeds 150ms, skip it and use fused results directly
 
----
+
 
 ## 🏁 Summary
 
-```mermaid
-mindmap
-  root((Hybrid Search))
-    Keyword Search
-      BM25 Algorithm
-      Exact word matching
-      Great for IDs and codes
-      Fast and explainable
-    Vector Search
-      Cosine Similarity
-      Semantic understanding
-      Great for intent and meaning
-      Handles synonyms
-    Why Hybrid?
-      Keyword alone misses synonyms
-      Vector alone misses exact terms
-      Together they cover both
-    Workflow
-      Parallel querying
-      Independent scoring
-      RRF Fusion
-      Optional re-ranking
-    In RAG Pipelines
-      Dual index at write time
-      Hybrid retrieval at query time
-      Better context for LLM
-    Databases
-      Weaviate native hybrid
-      Elasticsearch BM25 + vector
-      Qdrant sparse + dense
-      Pinecone managed
-    Challenges
-      Sync both indexes
-      Chunking strategy
-      Score normalization
-      Tuning alpha
-      Managing latency
-```
 
 > **Bottom line:** Neither keyword nor vector search is perfect alone. Hybrid search is the industry standard for production-grade AI search — combining the *precision* of keywords with the *intelligence* of vectors. Start with **RRF fusion**, use **Weaviate or Qdrant** if starting fresh, and tune your **α parameter** with real user queries.

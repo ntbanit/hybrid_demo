@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true });</script>
+</head>
+<body>
+
+  <div class="mermaid">
+flowchart TD
+    Q[/"👤 User Query
+	'Python async tutorial 2024'"/]
+
+    Q --> KS["🔤 Keyword Index
+	(Elasticsearch / Lucene / BM25)"]
+    Q --> VS["🧠 Vector Index
+	(HNSW / ANN)"]
+
+    KS --> KR["📋 Keyword Results
+	Doc A: BM25=14.2
+	Doc C: BM25=11.8
+	Doc F: BM25=9.1"]
+    VS --> VR["📋 Vector Results
+	Doc A: cos=0.94
+	Doc B: cos=0.89
+	Doc D: cos=0.81"]
+
+    KR --> NF["⚖️ Score Normalization & Fusion
+	RRF or Weighted Sum"]
+    VR --> NF
+
+    NF --> FR["🗂️ Fused Ranked List
+	#1 Doc A (in both!)
+	#2 Doc B
+	#3 Doc C
+	#4 Doc D
+	#5 Doc F"]
+
+    FR --> RR["🎯 Re-ranking
+	(Cross-Encoder Model)
+	Optional but powerful"]
+
+    RR --> LLM["🤖 LLM / Final Response"]
+
+    style Q fill:#1e40af,stroke:#60a5fa,color:#eff6ff
+    style KS fill:#854d0e,stroke:#fbbf24,color:#fef3c7
+    style VS fill:#312e81,stroke:#818cf8,color:#e0e7ff
+    style KR fill:#422006,stroke:#d97706,color:#fef3c7
+    style VR fill:#1e1b4b,stroke:#818cf8,color:#e0e7ff
+    style NF fill:#14532d,stroke:#4ade80,color:#dcfce7
+    style FR fill:#1e293b,stroke:#64748b,color:#e2e8f0
+    style RR fill:#4a044e,stroke:#d946ef,color:#fdf4ff
+    style LLM fill:#0c4a6e,stroke:#38bdf8,color:#e0f2fe
+  </div>
+  
+  <div class="mermaid">
+flowchart LR
+    subgraph RRF["🏆 Reciprocal Rank Fusion (RRF)"]
+        direction TB
+        R1["Formula:
+RRF(doc) = Σ 1/(k + rank)
+where k=60 (default)"]
+        R2["✅ Works when scales differ wildly
+✅ No tuning needed
+✅ Robust to outliers
+❌ Ignores actual score values"]
+    end
+
+    subgraph WS["⚖️ Weighted Sum Fusion"]
+        direction TB
+        W1["Formula:
+Score = α × norm(vector) + (1-α) × norm(keyword)
+where α is a tuning parameter 0-1"]
+        W2["✅ Fine-grained control
+✅ Boost keyword or vector by domain
+❌ Requires careful normalization
+❌ Needs tuning and testing"]
+    end
+
+    subgraph USE["📌 When to Use Which?"]
+        direction TB
+        U1["Use RRF when:
+• Starting out / prototyping
+• Scores from different scale systems
+• You don't have labeled training data
+• You want zero config"]
+        U2["Use Weighted Sum when:
+• You have training data to tune α
+• Domain is keyword-heavy (legal, code)
+  → α = 0.3 (weight vector less)
+• Domain is semantic (creative, Q&A)
+  → α = 0.7 (weight vector more)"]
+    end
+
+    RRF --> USE
+    WS --> USE
+
+    style RRF fill:#1e3a5f,stroke:#38bdf8,color:#e0f2fe
+    style WS fill:#2d1b69,stroke:#a78bfa,color:#ede9fe
+    style USE fill:#14532d,stroke:#4ade80,color:#dcfce7
+  </div>
+  
+  
+  <div class="mermaid">
+flowchart LR
+    subgraph ASIS["❌ AS-IS: Vector-Only RAG"]
+        direction TB
+        subgraph IDX1["Phase 1: Index"]
+            A1["📄 Documents"] --> A2["✂️ Chunking"]
+            A2 --> A3["🧠 Embedding Model"]
+            A3 --> A4[("🗄️ Vector DB Only")]
+        end
+        subgraph RET1["Phase 2: Retrieve"]
+            B1["❓ User Query"] --> B2["🔢 Query Embedding"]
+            B2 --> B3["🔍 Vector Search Only"]
+            A4 --> B3
+            B3 --> B4["📝 Context"]
+            B4 --> B5["🤖 LLM Answer"]
+        end
+    end
+
+    subgraph TOBE["✅ TO-BE: Hybrid RAG"]
+        direction TB
+        subgraph IDX2["Phase 1: Index"]
+            C1["📄 Documents"] --> C2["✂️ Chunking"]
+            C2 --> C3["🧠 Embedding"]
+            C2 --> C6["🔤 BM25 Tokenizing"]
+            C3 --> C4[("🗄️ Vector DB")]
+            C6 --> C7[("📚 Keyword Index")]
+        end
+        subgraph RET2["Phase 2: Retrieve"]
+            D1["❓ User Query"] --> D2["🔢 Query Embedding"]
+            D1 --> D6["🔤 Keyword Parse"]
+            D2 --> D3["🔍 Vector Search"]
+            D6 --> D7["🔤 Keyword Search"]
+            C4 --> D3
+            C7 --> D7
+            D3 --> D8["⚖️ Hybrid Fusion
+			(RRF / Weighted Sum)"]
+            D7 --> D8
+            D8 --> D9["🎯 Re-ranking"]
+            D9 --> D10["📝 Context"]
+            D10 --> D11["🤖 LLM Answer"]
+        end
+    end
+
+    style ASIS fill:#1a0a0a,stroke:#ef4444,color:#fca5a5
+    style TOBE fill:#0a1a0a,stroke:#22c55e,color:#86efac
+    style IDX1 fill:#ffffff,stroke:#dc2626
+    style RET1 fill:#ffffff,stroke:#dc2626
+    style IDX2 fill:#ffffff,stroke:#16a34a
+    style RET2 fill:#ffffff,stroke:#16a34a
+  </div>
+
+
+  <div class="mermaid">
+gantt
+    title Query Latency Comparison (milliseconds)
+    dateFormat X
+    axisFormat %s ms
+
+    section Keyword Only
+    BM25 Search     : 0, 20
+
+    section Vector Only
+    Embedding Query : 0, 15
+    ANN Search      : 15, 35
+
+    section Hybrid (Parallel)
+    BM25 Search     : 0, 20
+    Embedding Query : 0, 15
+    ANN Search      : 15, 35
+    Fusion + RRF    : 35, 42
+    Re-ranking      : 42, 90
+
+    section Hybrid (No Rerank)
+    BM25 Search     : 0, 20
+    Embedding Query : 0, 15
+    ANN Search      : 15, 35
+    Fusion only     : 35, 42
+  </div>
+  
+  
+  
+  <div class="mermaid">
+mindmap
+  root((Hybrid Search))
+    Keyword Search
+      BM25 Algorithm
+      Exact word matching
+      Great for IDs and codes
+      Fast and explainable
+    Vector Search
+      Cosine Similarity
+      Semantic understanding
+      Great for intent and meaning
+      Handles synonyms
+    Why Hybrid?
+      Keyword alone misses synonyms
+      Vector alone misses exact terms
+      Together they cover both
+    Workflow
+      Parallel querying
+      Independent scoring
+      RRF Fusion
+      Optional re-ranking
+    In RAG Pipelines
+      Dual index at write time
+      Hybrid retrieval at query time
+      Better context for LLM
+    Databases
+      Weaviate native hybrid
+      Elasticsearch BM25 + vector
+      Qdrant sparse + dense
+      Pinecone managed
+    Challenges
+      Sync both indexes
+      Chunking strategy
+      Score normalization
+      Tuning alpha
+      Managing latency
+  </div>
+</body>
+</html>
