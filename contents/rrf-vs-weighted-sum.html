@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRF vs Weighted Sum Fusion</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --s1: #0d1117;
+    --s2: #131920;
+    --border: #1c2838;
+    --rrf: #10b981;
+    --rrf-dim: rgba(16,185,129,0.12);
+    --rrf-border: rgba(16,185,129,0.25);
+    --wsf: #f59e0b;
+    --wsf-dim: rgba(245,158,11,0.12);
+    --wsf-border: rgba(245,158,11,0.25);
+    --text: #dde4ef;
+    --muted: #4a5d70;
+    --dim: #7a90a4;
+    --red: #f87171;
+    --green: #34d399;
+    --blue: #60a5fa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    padding: 36px 20px 60px;
+    background-image:
+      radial-gradient(ellipse 50% 30% at 15% 5%, rgba(16,185,129,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 30% at 85% 95%, rgba(245,158,11,0.07) 0%, transparent 55%);
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  .hdr { text-align: center; margin-bottom: 44px; }
+  .hdr .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .hdr h1 {
+    font-size: clamp(24px,4vw,38px); font-weight: 800; line-height: 1.15;
+  }
+  .hdr h1 .rrf-c { color: var(--rrf); }
+  .hdr h1 .vs { color: var(--muted); padding: 0 12px; font-weight: 400; }
+  .hdr h1 .wsf-c { color: var(--wsf); }
+  .hdr p { font-size: 14px; color: var(--dim); margin-top: 8px; }
+
+  /* ── FORMULA ROW ── */
+  .formula-row {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px;
+    align-items: center; margin-bottom: 32px;
+  }
+  .formula-box {
+    background: var(--s1); border-radius: 12px; padding: 20px 22px;
+    border-top: 3px solid;
+  }
+  .formula-box.rrf { border-color: var(--rrf); }
+  .formula-box.wsf { border-color: var(--wsf); }
+
+  .formula-box .name {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 10px; font-weight: 600;
+  }
+  .formula-box.rrf .name { color: var(--rrf); }
+  .formula-box.wsf .name { color: var(--wsf); }
+
+  .formula-box .eq {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(12px,2vw,15px); color: var(--text);
+    background: var(--s2); border-radius: 8px;
+    padding: 12px 14px; line-height: 1.7;
+  }
+  .formula-box .eq .hl-rrf { color: var(--rrf); font-weight: 700; }
+  .formula-box .eq .hl-wsf { color: var(--wsf); font-weight: 700; }
+  .formula-box .eq .hl-dim { color: var(--dim); }
+  .formula-box .eq sub { font-size: 0.75em; }
+
+  .formula-box .desc {
+    font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.5;
+  }
+
+  .vs-bubble {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--s2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    color: var(--muted); font-weight: 700; flex-shrink: 0;
+  }
+
+  /* ── COMPARE TABLE ── */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .compare-table {
+    background: var(--s1); border-radius: 12px;
+    border: 1px solid var(--border); overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .ct-head {
+    display: grid; grid-template-columns: 1.6fr 1fr 1fr;
+    background: var(--s2); border-bottom: 1px solid var(--border);
+  }
+  .ct-head div {
+    padding: 12px 18px; font-size: 12px; font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .ct-head .rrf-h { color: var(--rrf); border-right: 1px solid var(--border); }
+  .ct-head .wsf-h { color: var(--wsf); }
+  .ct-head .dim-h { color: var(--muted); border-right: 1px solid var(--border); }
+
+  .ct-row {
+    display: grid; grid-template-columns: 1.6fr 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .ct-row:last-child { border-bottom: none; }
+  .ct-row:hover { background: rgba(255,255,255,0.02); }
+
+  .ct-row > div {
+    padding: 13px 18px; font-size: 13px; line-height: 1.45;
+    border-right: 1px solid var(--border);
+  }
+  .ct-row > div:last-child { border-right: none; }
+
+  .ct-row .aspect {
+    color: var(--dim); font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .ct-row .aspect .ico { flex-shrink: 0; margin-top: 1px; }
+
+  .good  { color: var(--green); }
+  .bad   { color: var(--red); }
+  .neut  { color: var(--dim); }
+  .warn  { color: #fbbf24; }
+
+  .pill {
+    display: inline-block; font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-top: 3px;
+  }
+  .pill.g { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .pill.r { background: rgba(248,113,113,0.12); color: var(--red);   border: 1px solid rgba(248,113,113,0.2); }
+  .pill.y { background: rgba(251,191,36,0.12);  color: #fbbf24;      border: 1px solid rgba(251,191,36,0.2); }
+
+  /* ── WHEN TO USE ── */
+  .when-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .when-box {
+    border-radius: 12px; padding: 22px; border: 1px solid;
+    position: relative; overflow: hidden;
+  }
+  .when-box.rrf { border-color: var(--rrf-border); background: var(--rrf-dim); }
+  .when-box.wsf { border-color: var(--wsf-border); background: var(--wsf-dim); }
+
+  .when-box::before {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 100px; height: 100px; border-radius: 50%;
+    opacity: 0.06;
+  }
+  .when-box.rrf::before { background: var(--rrf); }
+  .when-box.wsf::before { background: var(--wsf); }
+
+  .when-box .wh-title {
+    font-size: 13px; font-weight: 800; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .when-box.rrf .wh-title { color: var(--rrf); }
+  .when-box.wsf .wh-title { color: var(--wsf); }
+
+  .use-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-bottom: 10px; font-size: 13px; line-height: 1.45;
+  }
+  .use-item .dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+  }
+  .when-box.rrf .use-item .dot { background: var(--rrf); }
+  .when-box.wsf .use-item .dot { background: var(--wsf); }
+  .use-item .txt { color: var(--text); }
+  .use-item .txt small { display: block; color: var(--dim); font-size: 11px; margin-top: 2px; }
+
+  /* ── SCORE VISUAL ── */
+  .score-section { margin-bottom: 28px; }
+
+  .score-demo {
+    background: var(--s1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px; 
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+
+  .score-col h4 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 14px; font-weight: 700;
+  }
+  .score-col.rrf h4 { color: var(--rrf); }
+  .score-col.wsf h4 { color: var(--wsf); }
+
+  .doc-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .doc-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--dim); width: 30px; flex-shrink: 0;
+  }
+  .bar-track {
+    flex: 1; height: 20px; background: var(--s2);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 4px;
+    display: flex; align-items: center; padding-left: 8px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    font-weight: 700; transition: width 0.8s ease;
+  }
+  .bar-fill.rrf-bar { background: rgba(16,185,129,0.35); color: var(--rrf); }
+  .bar-fill.wsf-bar { background: rgba(245,158,11,0.35); color: var(--wsf); }
+
+  .score-note {
+    font-size: 11px; color: var(--dim);
+    background: var(--s2); border-radius: 6px; padding: 8px 10px;
+    margin-top: 10px; line-height: 1.5;
+  }
+
+  /* ── DECISION TREE ── */
+  .decision { margin-bottom: 28px; }
+
+  .dtree {
+    background: var(--s1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+
+  .dtree-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    margin-bottom: 16px; position: relative;
+  }
+  .dtree-row:last-child { margin-bottom: 0; }
+
+  .dtree-row::before {
+    content: '';
+    position: absolute; left: 17px; top: 36px;
+    width: 1px; height: calc(100% + 0px);
+    background: var(--border);
+  }
+  .dtree-row:last-child::before { display: none; }
+
+  .q-bubble {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--s2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; z-index: 1;
+  }
+
+  .q-content .q { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .q-content .choices { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .choice {
+    font-size: 12px; padding: 4px 10px; border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .choice.yes { background: var(--rrf-dim); color: var(--rrf); border: 1px solid var(--rrf-border); }
+  .choice.no  { background: var(--wsf-dim); color: var(--wsf); border: 1px solid var(--wsf-border); }
+  .choice.either { background: rgba(96,165,250,0.1); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+
+  /* ── TL;DR BANNER ── */
+  .tldr {
+    background: var(--s2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    display: grid; grid-template-columns: auto 1fr 1fr; gap: 20px;
+    align-items: center;
+  }
+  .tldr-icon { font-size: 28px; }
+  .tldr-item h4 {
+    font-size: 12px; font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .tldr-item.rrf h4 { color: var(--rrf); }
+  .tldr-item.wsf h4 { color: var(--wsf); }
+  .tldr-item p { font-size: 13px; color: var(--dim); line-height: 1.5; }
+
+  @media (max-width: 680px) {
+    .formula-row { grid-template-columns: 1fr; }
+    .vs-bubble { display: none; }
+    .when-grid { grid-template-columns: 1fr; }
+    .score-demo { grid-template-columns: 1fr; }
+    .ct-head, .ct-row { grid-template-columns: 1fr; }
+    .ct-row > div { border-right: none; border-bottom: 1px solid var(--border); }
+    .ct-row > div:last-child { border-bottom: none; }
+    .tldr { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="eyebrow">Hybrid Search · Fusion Strategy</div>
+    <h1>
+      <span class="rrf-c">RRF</span>
+      <span class="vs">vs</span>
+      <span class="wsf-c">Weighted Sum</span>
+    </h1>
+    <p>How to merge dense + sparse results — and which approach wins in what situation</p>
+  </div>
+
+  <!-- Formula Row -->
+  <div class="formula-row">
+
+    <div class="formula-box rrf">
+      <div class="name">Reciprocal Rank Fusion</div>
+      <div class="eq">
+        RRF(d) = Σ <span class="hl-rrf">1 / (k + rank<sub>i</sub>(d))</span><br>
+        <span class="hl-dim">k = 60  (smoothing constant)</span><br>
+        <span class="hl-dim">rank = position in result list</span>
+      </div>
+      <div class="desc">Ignores raw scores entirely. Only the <strong>rank position</strong> of a document matters. A constant <em>k=60</em> prevents top-1 docs from dominating everything.</div>
+    </div>
+
+    <div class="vs-bubble">VS</div>
+
+    <div class="formula-box wsf">
+      <div class="name">Weighted Sum Fusion</div>
+      <div class="eq">
+        score(d) = <span class="hl-wsf">α · dense(d)</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="hl-wsf">(1−α) · sparse(d)</span><br>
+        <span class="hl-dim">α ∈ [0, 1]  (tunable weight)</span>
+      </div>
+      <div class="desc">Blends the actual <strong>normalized scores</strong> from each retriever. Requires careful normalization (min-max or softmax) before combining — raw scores are incompatible.</div>
+    </div>
+  </div>
+
+  <!-- Compare Table -->
+  <div class="section-label">Head-to-head comparison</div>
+  <div class="compare-table">
+    <div class="ct-head">
+      <div class="dim-h">Dimension</div>
+      <div class="rrf-h">RRF</div>
+      <div class="wsf-h">Weighted Sum</div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">📐</span>Normalization needed?</div>
+      <div><span class="pill g">None</span><br><span class="neut" style="font-size:12px">Ranks are already comparable</span></div>
+      <div><span class="pill r">Required</span><br><span class="neut" style="font-size:12px">Must normalize before blending</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🎛️</span>Tuning required?</div>
+      <div><span class="pill g">Minimal</span><br><span class="neut" style="font-size:12px">k=60 works well out of the box</span></div>
+      <div><span class="pill r">High</span><br><span class="neut" style="font-size:12px">α must be tuned per domain/query type</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🎯</span>Score sensitivity</div>
+      <div><span class="neut">Rank-only — outlier scores don't matter</span></div>
+      <div><span class="neut">Score-sensitive — outliers can skew results</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🏎️</span>Implementation ease</div>
+      <div><span class="pill g">Simple</span><br><span class="neut" style="font-size:12px">Sort by rank, apply formula</span></div>
+      <div><span class="pill y">Moderate</span><br><span class="neut" style="font-size:12px">Normalization + weight logic needed</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🔍</span>Precision on known-item queries</div>
+      <div><span class="bad">Weaker</span><br><span class="neut" style="font-size:12px">Rank smoothing dilutes strong signals</span></div>
+      <div><span class="good">Stronger</span><br><span class="neut" style="font-size:12px">High-confidence scores can dominate correctly</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🌐</span>Works without labeled data?</div>
+      <div><span class="pill g">Yes</span><br><span class="neut" style="font-size:12px">No training data needed</span></div>
+      <div><span class="pill r">Harder</span><br><span class="neut" style="font-size:12px">Need labeled queries to tune α well</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">📊</span>Robustness to score distribution shifts</div>
+      <div><span class="good">Robust</span><br><span class="neut" style="font-size:12px">Model upgrades don't break fusion</span></div>
+      <div><span class="bad">Fragile</span><br><span class="neut" style="font-size:12px">New model = recalibrate normalization</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">⚙️</span>Dynamic per-query weighting</div>
+      <div><span class="pill r">Not possible</span><br><span class="neut" style="font-size:12px">k is static; no per-query control</span></div>
+      <div><span class="pill g">Possible</span><br><span class="neut" style="font-size:12px">α can vary by query type/intent</span></div>
+    </div>
+
+    <div class="ct-row">
+      <div class="aspect"><span class="ico">🏭</span>Production default</div>
+      <div><span class="pill g">Yes — most common default</span></div>
+      <div><span class="pill y">Yes — when tuning is possible</span></div>
+    </div>
+  </div>
+
+  <!-- Score Visualization -->
+  <div class="score-section">
+    <div class="section-label">How each method re-ranks 5 documents</div>
+    <div class="score-demo">
+      <div class="score-col rrf">
+        <h4>RRF — rank-based</h4>
+        <!-- RRF: 1/(60+rank_dense) + 1/(60+rank_sparse) -->
+        <div class="doc-row">
+          <div class="doc-label">Doc A</div>
+          <div class="bar-track"><div class="bar-fill rrf-bar" style="width:92%">0.0320</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc B</div>
+          <div class="bar-track"><div class="bar-fill rrf-bar" style="width:76%">0.0265</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc C</div>
+          <div class="bar-track"><div class="bar-fill rrf-bar" style="width:65%">0.0228</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc D</div>
+          <div class="bar-track"><div class="bar-fill rrf-bar" style="width:52%">0.0180</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc E</div>
+          <div class="bar-track"><div class="bar-fill rrf-bar" style="width:38%">0.0131</div></div>
+        </div>
+        <div class="score-note">Scores are compressed — the gap between rank 1 and rank 5 is always bounded. No single outlier can dominate.</div>
+      </div>
+
+      <div class="score-col wsf">
+        <h4>Weighted Sum — score-based</h4>
+        <!-- WSF: wider spread possible -->
+        <div class="doc-row">
+          <div class="doc-label">Doc A</div>
+          <div class="bar-track"><div class="bar-fill wsf-bar" style="width:95%">0.912</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc B</div>
+          <div class="bar-track"><div class="bar-fill wsf-bar" style="width:58%">0.554</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc C</div>
+          <div class="bar-track"><div class="bar-fill wsf-bar" style="width:44%">0.421</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc D</div>
+          <div class="bar-track"><div class="bar-fill wsf-bar" style="width:28%">0.267</div></div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-label">Doc E</div>
+          <div class="bar-track"><div class="bar-fill wsf-bar" style="width:14%">0.138</div></div>
+        </div>
+        <div class="score-note">Scores spread widely — a highly confident match can pull far ahead. Outliers (very high or very low scores) have real impact.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- When to Use -->
+  <div class="section-label">When to use which</div>
+  <div class="when-grid">
+
+    <div class="when-box rrf">
+      <div class="wh-title">✅ Use RRF when…</div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You have <strong>no labeled query data</strong> to tune weights<small>Cold-start projects, new domains, prototyping</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You're <strong>frequently upgrading</strong> embedding models<small>RRF is immune to score distribution changes</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">Queries are <strong>exploratory / open-ended</strong><small>e.g. "explain how transformers work"</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You want a <strong>safe, robust default</strong> with minimal engineering<small>Most RAG systems start here</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt"><strong>Multiple retrievers</strong> (3+) need to be combined<small>RRF handles N sources cleanly; WSF gets messy</small></div></div>
+    </div>
+
+    <div class="when-box wsf">
+      <div class="wh-title">✅ Use Weighted Sum when…</div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You have <strong>labeled evaluation data</strong> to tune α<small>Human-annotated query-document relevance pairs</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">Query types are <strong>known and classifiable</strong><small>e.g. keyword vs semantic can be detected at runtime</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You need <strong>fine-grained control</strong> over retriever influence<small>e.g. exact product codes must always prioritize BM25</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">Domain has <strong>stable score distributions</strong><small>Models rarely change, normalization stays valid</small></div></div>
+      <div class="use-item"><div class="dot"></div><div class="txt">You're optimizing for <strong>known-item / lookup queries</strong><small>e.g. "find invoice #INV-2024-0042"</small></div></div>
+    </div>
+  </div>
+
+  <!-- Decision Tree -->
+  <div class="decision">
+    <div class="section-label">Quick decision guide</div>
+    <div class="dtree">
+
+      <div class="dtree-row">
+        <div class="q-bubble">❓</div>
+        <div class="q-content">
+          <div class="q">Do you have labeled query-document relevance data?</div>
+          <div class="choices">
+            <span class="choice yes">✅ No → Use RRF</span>
+            <span class="choice no">🟡 Yes → Continue ↓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dtree-row">
+        <div class="q-bubble">❓</div>
+        <div class="q-content">
+          <div class="q">Are your query types predictable (keyword vs semantic)?</div>
+          <div class="choices">
+            <span class="choice yes">✅ No → Use RRF</span>
+            <span class="choice no">🟡 Yes → Continue ↓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dtree-row">
+        <div class="q-bubble">❓</div>
+        <div class="q-content">
+          <div class="q">Will your embedding model stay stable (no frequent upgrades)?</div>
+          <div class="choices">
+            <span class="choice yes">✅ No → Use RRF</span>
+            <span class="choice no">🟡 Yes → Continue ↓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dtree-row">
+        <div class="q-bubble">❓</div>
+        <div class="q-content">
+          <div class="q">Do you need fine-grained control per query type / domain?</div>
+          <div class="choices">
+            <span class="choice no">✅ Yes → Use Weighted Sum (with tuned α)</span>
+            <span class="choice either">🔵 Either works → Default to RRF for simplicity</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TL;DR -->
+  <div class="tldr">
+    <div class="tldr-icon">💡</div>
+    <div class="tldr-item rrf">
+      <h4>RRF = Safe Default</h4>
+      <p>Start here. No tuning, no normalization headaches, robust across model upgrades. Works great for 80% of RAG use cases.</p>
+    </div>
+    <div class="tldr-item wsf">
+      <h4>Weighted Sum = Precision Tool</h4>
+      <p>Use when you have data, stability, and a specific retrieval pattern you want to optimize. Higher ceiling, higher cost to get right.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

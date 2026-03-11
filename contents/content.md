@@ -1,3 +1,13 @@
+################################################################
+1- Trưởng asked : Why we need TF-IDF / what is BM25 / why we need it 
+
+2- Chiến asked: làm sao để biết được thằng nào điểm cao / thấp / medium 
+
+3- Hiếu asked thêm công thức TF-IDF 
+
+4 - các db nào free / mất phí : chi tiết hơn 
+
+
 # Content.MD — Hybrid Search Seminar
 **Topic**: Hybrid Search: Combining Keyword and Vector Search for Accuracy  
 **Audience**: Mixed (Non-technical stakeholders + Developers)  

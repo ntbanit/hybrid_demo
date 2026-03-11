@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hybrid Search: Database Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f4ef;
+  --ink: #1a1714;
+  --ink2: #3d3830;
+  --muted: #9a9088;
+  --faint: #e8e3da;
+  --faint2: #ddd8cf;
+  --white: #ffffff;
+
+  --weaviate: #3d9970;
+  --elastic: #f0a500;
+  --opensearch: #7b5ea7;
+  --qdrant: #dc4f3a;
+  --pgvector: #336791;
+  --pinecone: #1b7f4e;
+  --redis: #d63527;
+  --milvus: #00b5e2;
+
+  --native: #22863a;
+  --native-bg: #e8f5ec;
+  --partial: #b45309;
+  --partial-bg: #fef3e2;
+  --external: #b91c1c;
+  --external-bg: #fde8e8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Outfit', sans-serif;
+  padding: 48px 24px 72px;
+  min-height: 100vh;
+}
+
+.wrap { max-width: 1100px; margin: 0 auto; }
+
+/* ── HEADER ── */
+header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--ink);
+  gap: 20px;
+}
+
+.hdr-left .tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hdr-left .tag::before { content: '//'; color: var(--faint2); }
+
+header h1 {
+  font-size: clamp(26px, 4vw, 42px);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -1px; color: var(--ink);
+}
+header h1 em { font-style: normal; position: relative; display: inline-block; }
+header h1 em::after {
+  content: ''; position: absolute; left: 0; bottom: 2px;
+  width: 100%; height: 4px; background: var(--ink); border-radius: 2px;
+}
+
+.hdr-legend {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--white); border: 1.5px solid var(--faint2);
+  border-radius: 10px; padding: 14px 18px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink2); font-weight: 500;
+}
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.legend-dot.native   { background: var(--native); }
+.legend-dot.partial  { background: var(--partial); }
+.legend-dot.external { background: var(--external); }
+
+/* ── DB CARDS GRID ── */
+.db-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+  margin-bottom: 40px;
+}
+
+.db-card {
+  background: var(--white);
+  border: 1.5px solid var(--faint2);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: rise 0.5s ease both;
+}
+.db-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(26,23,20,0.1);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.db-card:nth-child(1) { animation-delay: 0.05s; }
+.db-card:nth-child(2) { animation-delay: 0.10s; }
+.db-card:nth-child(3) { animation-delay: 0.15s; }
+.db-card:nth-child(4) { animation-delay: 0.20s; }
+.db-card:nth-child(5) { animation-delay: 0.25s; }
+.db-card:nth-child(6) { animation-delay: 0.30s; }
+.db-card:nth-child(7) { animation-delay: 0.35s; }
+.db-card:nth-child(8) { animation-delay: 0.40s; }
+
+.card-top {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--faint);
+  display: flex; align-items: flex-start; gap: 14px;
+}
+
+.db-logo {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.card-top-info { flex: 1; min-width: 0; }
+
+.db-name {
+  font-size: 16px; font-weight: 800; letter-spacing: -0.3px;
+  margin-bottom: 3px;
+}
+
+.db-type {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hybrid-badge {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px; flex-shrink: 0; align-self: flex-start;
+  margin-top: 2px;
+}
+.hybrid-badge.native   { background: var(--native-bg);   color: var(--native);   border: 1px solid rgba(34,134,58,0.2); }
+.hybrid-badge.partial  { background: var(--partial-bg);  color: var(--partial);  border: 1px solid rgba(180,83,9,0.2); }
+.hybrid-badge.external { background: var(--external-bg); color: var(--external); border: 1px solid rgba(185,28,28,0.2); }
+
+.card-body { padding: 16px 20px; }
+
+.attr-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 13px; line-height: 1.45;
+}
+.attr-row:last-child { margin-bottom: 0; }
+.attr-key {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  min-width: 80px; padding-top: 1px; flex-shrink: 0;
+}
+.attr-val { color: var(--ink2); flex: 1; }
+
+.icon-row {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
+  padding-top: 12px; border-top: 1px solid var(--faint);
+}
+.chip {
+  font-size: 11px; padding: 3px 9px; border-radius: 20px;
+  font-weight: 600; border: 1px solid;
+}
+.chip.yes  { background: var(--native-bg);   color: var(--native);   border-color: rgba(34,134,58,0.2); }
+.chip.no   { background: var(--external-bg); color: var(--external); border-color: rgba(185,28,28,0.2); }
+.chip.part { background: var(--partial-bg);  color: var(--partial);  border-color: rgba(180,83,9,0.2); }
+
+/* ── RATINGS ROW ── */
+.rating-bar {
+  display: flex; gap: 4px; align-items: center; margin-top: 2px;
+}
+.star { font-size: 11px; }
+
+/* ── WHEN TO USE TABLE ── */
+.section-head {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 18px;
+}
+.section-head h2 {
+  font-size: 13px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--ink);
+}
+.section-head::after {
+  content: ''; flex: 1; height: 1.5px; background: var(--faint2);
+}
+
+.use-table {
+  background: var(--white); border: 1.5px solid var(--faint2);
+  border-radius: 14px; overflow: hidden; margin-bottom: 40px;
+}
+
+.use-table-head {
+  display: grid;
+  grid-template-columns: 2fr repeat(8, 1fr);
+  background: var(--ink); color: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+}
+.use-table-head > div {
+  padding: 11px 8px; text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.use-table-head > div:first-child { text-align: left; padding-left: 18px; border-right: 1px solid rgba(255,255,255,0.1); }
+.use-table-head > div:last-child { border-right: none; }
+
+.use-row {
+  display: grid;
+  grid-template-columns: 2fr repeat(8, 1fr);
+  border-bottom: 1px solid var(--faint);
+  transition: background 0.15s;
+}
+.use-row:last-child { border-bottom: none; }
+.use-row:hover { background: #fbf9f6; }
+
+.use-row > div {
+  padding: 11px 8px; text-align: center;
+  font-size: 13px; border-right: 1px solid var(--faint);
+  display: flex; align-items: center; justify-content: center;
+}
+.use-row > div:first-child {
+  text-align: left; padding-left: 18px;
+  justify-content: flex-start;
+  border-right: 1px solid var(--faint2);
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  gap: 8px;
+}
+.use-row > div:last-child { border-right: none; }
+
+/* ── DECISION MATRIX ── */
+.decision-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px;
+  margin-bottom: 40px;
+}
+
+.dec-card {
+  background: var(--white); border: 1.5px solid var(--faint2);
+  border-radius: 12px; padding: 20px;
+}
+
+.dec-card h3 {
+  font-size: 13px; font-weight: 700; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--ink);
+}
+
+.dec-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-bottom: 8px; font-size: 13px;
+}
+.dec-item .arrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--muted); margin-top: 2px; flex-shrink: 0;
+}
+.dec-item .text { color: var(--ink2); line-height: 1.4; }
+.dec-item .db-tag {
+  font-size: 11px; font-weight: 700; padding: 1px 7px;
+  border-radius: 4px; margin-left: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--faint); color: var(--ink2);
+}
+
+/* ── BOTTOM SUMMARY ── */
+.bottom-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--faint2); border-radius: 12px; overflow: hidden;
+  border: 1.5px solid var(--faint2);
+}
+.sum-cell {
+  background: var(--white); padding: 20px 18px; text-align: center;
+}
+.sum-cell .num {
+  font-size: 32px; font-weight: 800; letter-spacing: -2px;
+  font-family: 'JetBrains Mono', monospace; color: var(--ink); line-height: 1;
+}
+.sum-cell .lbl {
+  font-size: 11px; color: var(--muted); margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1px;
+}
+
+@media (max-width: 700px) {
+  .db-grid { grid-template-columns: 1fr; }
+  .decision-grid { grid-template-columns: 1fr; }
+  .bottom-row { grid-template-columns: 1fr 1fr; }
+  .use-table-head, .use-row { grid-template-columns: 1.5fr repeat(4, 1fr); }
+  .use-table-head > div:nth-child(n+7),
+  .use-row > div:nth-child(n+7) { display: none; }
+  header { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="hdr-left">
+      <div class="tag">Vector Database · RAG Infrastructure</div>
+      <h1>Hybrid Search<br>across <em>Databases</em></h1>
+      <p style="font-size:14px;color:var(--muted);margin-top:10px;">Dense + sparse retrieval support, architecture, tradeoffs & when to pick each</p>
+    </div>
+    <div class="hdr-legend">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Hybrid Support</div>
+      <div class="legend-item"><div class="legend-dot native"></div>Native — built-in, single query</div>
+      <div class="legend-item"><div class="legend-dot partial"></div>Partial — needs config / plugin</div>
+      <div class="legend-item"><div class="legend-dot external"></div>External — requires separate store</div>
+    </div>
+  </header>
+
+  <!-- DB Cards -->
+  <div class="section-head"><h2>Database Profiles</h2></div>
+  <div class="db-grid">
+
+    <!-- Weaviate -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#e8f5ec;color:#3d9970;">W</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#3d9970;">Weaviate</div>
+          <div class="db-type">Purpose-built Vector DB</div>
+        </div>
+        <div class="hybrid-badge native">● Native</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">BM25 built-in, no extra setup</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">HNSW vector index, module-based embeddings</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">RRF + relative score fusion, both native</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Zero infra overhead — one DB does everything. Strong GraphQL API.</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Less mature BM25 tuning vs Elasticsearch; limited sparse customization</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Single Store</span>
+          <span class="chip yes">✓ RRF Native</span>
+          <span class="chip yes">✓ Metadata Filter</span>
+          <span class="chip yes">✓ Multi-tenant</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Elasticsearch -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#fef3e2;color:#f0a500;">E</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#c07000;">Elasticsearch</div>
+          <div class="db-type">Search Engine + Vector DB</div>
+        </div>
+        <div class="hybrid-badge native">● Native</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">Industry-leading BM25 / BM25F, full inverted index</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">kNN via HNSW (v8+), ELSER sparse neural model</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">RRF native (v8.8+), custom linear combination</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Best-in-class BM25, battle-tested at scale, rich aggregations & analytics</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Heavy JVM resource usage; expensive at scale; complex ops</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Best BM25</span>
+          <span class="chip yes">✓ RRF Native</span>
+          <span class="chip yes">✓ ELSER Neural</span>
+          <span class="chip part">~ High Ops Cost</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OpenSearch -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#f0ecfa;color:#7b5ea7;">O</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#7b5ea7;">OpenSearch</div>
+          <div class="db-type">Open-source Search + Vector</div>
+        </div>
+        <div class="hybrid-badge native">● Native</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">BM25 (Lucene-based), same quality as ES</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">HNSW + IVF via k-NN plugin</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">Hybrid search query DSL, normalization processors</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Truly open-source (Apache 2.0), AWS-native, Elasticsearch parity</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Slightly behind ES in ML features; AWS lock-in risk on managed</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Apache 2.0</span>
+          <span class="chip yes">✓ AWS Native</span>
+          <span class="chip yes">✓ BM25 Strong</span>
+          <span class="chip part">~ ES Feature Lag</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Qdrant -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#fdecea;color:#dc4f3a;">Q</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#dc4f3a;">Qdrant</div>
+          <div class="db-type">Purpose-built Vector DB (Rust)</div>
+        </div>
+        <div class="hybrid-badge native">● Native</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">Sparse vectors (SPLADE / BM42), stored natively</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">HNSW, multiple named vectors per point</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">RRF + Distribution-Based Score Fusion (DBSF)</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Blazing fast (Rust), low memory, excellent filtering, SPLADE support</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Sparse requires you to bring your own SPLADE model; smaller ecosystem</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Rust Speed</span>
+          <span class="chip yes">✓ SPLADE</span>
+          <span class="chip yes">✓ DBSF Fusion</span>
+          <span class="chip part">~ DIY Sparse Model</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- pgvector -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#e8eef7;color:#336791;">pg</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#336791;">pgvector</div>
+          <div class="db-type">PostgreSQL Extension</div>
+        </div>
+        <div class="hybrid-badge partial">◑ Partial</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">PostgreSQL FTS (tsvector/tsquery) — no BM25 by default</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">IVFFlat + HNSW via pgvector extension</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">Manual SQL union + custom scoring; RRF via raw SQL only</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Already in your Postgres stack — zero new infra, full SQL power</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">No native BM25, manual fusion logic, poor horizontal scale for vectors</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Zero New Infra</span>
+          <span class="chip yes">✓ Full SQL</span>
+          <span class="chip no">✗ No BM25</span>
+          <span class="chip no">✗ Manual Fusion</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pinecone -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#e8f5ec;color:#1b7f4e;">P</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#1b7f4e;">Pinecone</div>
+          <div class="db-type">Managed Vector DB (Cloud)</div>
+        </div>
+        <div class="hybrid-badge partial">◑ Partial</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">Sparse-dense index via SPLADE — you generate sparse vectors externally</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">Proprietary HNSW, fully managed</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">Weighted α blend at query time — no RRF</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Zero ops, serverless scaling, great managed experience</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Must run SPLADE model yourself; proprietary, costly at high volume</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Zero Ops</span>
+          <span class="chip yes">✓ Serverless</span>
+          <span class="chip part">~ SPLADE External</span>
+          <span class="chip no">✗ No RRF</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Redis -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#fde8e8;color:#d63527;">R</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#d63527;">Redis (RediSearch)</div>
+          <div class="db-type">In-memory + Search Module</div>
+        </div>
+        <div class="hybrid-badge partial">◑ Partial</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">Full-text search via RediSearch module (BM25-like)</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">HNSW vectors via RediSearch VECTOR field</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">Hybrid query via FT.SEARCH — limited fusion control</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Ultra-low latency (in-memory), great if already using Redis stack</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Memory-bound — expensive for large corpora; fusion is basic</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Ultra-low Latency</span>
+          <span class="chip yes">✓ In-memory</span>
+          <span class="chip part">~ Basic Fusion</span>
+          <span class="chip no">✗ Memory Cost</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Milvus -->
+    <div class="db-card">
+      <div class="card-top">
+        <div class="db-logo" style="background:#e2f6fd;color:#00b5e2;">M</div>
+        <div class="card-top-info">
+          <div class="db-name" style="color:#008fb5;">Milvus</div>
+          <div class="db-type">Cloud-native Vector DB</div>
+        </div>
+        <div class="hybrid-badge partial">◑ Partial</div>
+      </div>
+      <div class="card-body">
+        <div class="attr-row"><div class="attr-key">Sparse</div><div class="attr-val">Sparse float vectors (SPLADE / BM25 external) since v2.4</div></div>
+        <div class="attr-row"><div class="attr-key">Dense</div><div class="attr-val">HNSW, IVF, DiskANN — wide ANN algorithm support</div></div>
+        <div class="attr-row"><div class="attr-key">Fusion</div><div class="attr-val">Weighted RRF via hybrid search API</div></div>
+        <div class="attr-row"><div class="attr-key">Strength</div><div class="attr-val">Massive scale (billions of vectors), cloud-native, GPU acceleration</div></div>
+        <div class="attr-row"><div class="attr-key">Weakness</div><div class="attr-val">Operationally complex (K8s), sparse still maturing, steep learning curve</div></div>
+        <div class="icon-row">
+          <span class="chip yes">✓ Billion-scale</span>
+          <span class="chip yes">✓ GPU Accel</span>
+          <span class="chip part">~ Sparse Maturing</span>
+          <span class="chip part">~ Complex Ops</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- When to Use Table -->
+  <div class="section-head"><h2>When-to-use matrix</h2></div>
+  <div class="use-table">
+    <div class="use-table-head">
+      <div>Use Case / Need</div>
+      <div>Weaviate</div>
+      <div>Elastic</div>
+      <div>OpenSearch</div>
+      <div>Qdrant</div>
+      <div>pgvector</div>
+      <div>Pinecone</div>
+      <div>Redis</div>
+      <div>Milvus</div>
+    </div>
+
+    <div class="use-row">
+      <div>🚀 Fastest to prototype / MVP</div>
+      <div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐</div>
+    </div>
+    <div class="use-row">
+      <div>🔎 Best keyword / BM25 quality</div>
+      <div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐</div><div>⭐</div><div>⭐⭐</div><div>⭐</div>
+    </div>
+    <div class="use-row">
+      <div>⚡ Ultra-low latency (&lt;5ms)</div>
+      <div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>📦 Already in existing stack</div>
+      <div>—</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>—</div><div>⭐⭐⭐</div><div>—</div><div>⭐⭐⭐</div><div>—</div>
+    </div>
+    <div class="use-row">
+      <div>🏭 Billion-scale corpus</div>
+      <div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐</div><div>⭐⭐</div><div>⭐</div><div>⭐⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>☁️ Zero ops / managed cloud</div>
+      <div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>🔐 Self-hosted / air-gapped</div>
+      <div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>🎯 SPLADE / neural sparse</div>
+      <div>⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐</div><div>⭐⭐⭐</div><div>⭐</div><div>⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>🧩 Multi-vector per document</div>
+      <div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐</div><div>⭐</div><div>⭐</div><div>⭐⭐⭐</div>
+    </div>
+    <div class="use-row">
+      <div>💰 Cost efficiency at scale</div>
+      <div>⭐⭐</div><div>⭐</div><div>⭐⭐</div><div>⭐⭐⭐</div><div>⭐⭐⭐</div><div>⭐</div><div>⭐</div><div>⭐⭐</div>
+    </div>
+  </div>
+
+  <!-- Decision Scenarios -->
+  <div class="section-head"><h2>Pick by scenario</h2></div>
+  <div class="decision-grid">
+
+    <div class="dec-card">
+      <h3>🏗️ Starting a new RAG project</h3>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Need hybrid + zero extra infra? <span class="db-tag">Weaviate</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Want fastest managed cloud start? <span class="db-tag">Pinecone</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Already have Postgres? <span class="db-tag">pgvector</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Need high perf + open-source? <span class="db-tag">Qdrant</span></div></div>
+    </div>
+
+    <div class="dec-card">
+      <h3>🏢 Enterprise / existing stack</h3>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Already run Elasticsearch? Stay — add kNN <span class="db-tag">Elastic</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">AWS shop, open-source needed <span class="db-tag">OpenSearch</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Redis already in cache layer <span class="db-tag">Redis</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Postgres shop, small corpus <span class="db-tag">pgvector</span></div></div>
+    </div>
+
+    <div class="dec-card">
+      <h3>📈 Scale & performance focus</h3>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Billions of vectors, GPU cluster <span class="db-tag">Milvus</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Massive docs, rich analytics <span class="db-tag">Elastic</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Sub-5ms p99, memory not a cost <span class="db-tag">Redis</span></div></div>
+      <div class="dec-item"><div class="arrow">→</div><div class="text">Best perf/cost ratio, self-hosted <span class="db-tag">Qdrant</span></div></div>
+    </div>
+
+  </div>
+
+  <!-- Summary -->
+  <div class="bottom-row">
+    <div class="sum-cell">
+      <div class="num">3</div>
+      <div class="lbl">Native Hybrid DBs</div>
+    </div>
+    <div class="sum-cell">
+      <div class="num">4</div>
+      <div class="lbl">Partial / Config Needed</div>
+    </div>
+    <div class="sum-cell">
+      <div class="num">1</div>
+      <div class="lbl">Needs External Sparse</div>
+    </div>
+    <div class="sum-cell">
+      <div class="num" style="font-size:22px;letter-spacing:-1px;">Qdrant</div>
+      <div class="lbl">Best Perf / Cost Ratio</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

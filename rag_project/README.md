@@ -9,6 +9,7 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 ## Verify installation:
 python -c "import sklearn, pandas, numpy; print('All packages available')"
+python -c "import sklearn, pandas, numpy; print('All packages available')"
 ```
 
 ## 1. Types of Keyword Search
